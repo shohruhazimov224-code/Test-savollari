@@ -248,5 +248,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// Allow up to 60 seconds for long tests. If your plan ignores this, set the same value in vercel.json.
 module.exports.config = { maxDuration: 60 };
