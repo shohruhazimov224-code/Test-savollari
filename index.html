@@ -168,18 +168,10 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
 .loading-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;border-radius:var(--r);background:var(--accent-soft);color:var(--ink);font-weight:600}
 .loading-bar .msg{display:flex;align-items:center;gap:10px;min-width:0}
 
-/* Footer with Telegram contact */
-.app-footer{
-  margin-top:36px; padding-top:20px; border-top:1px solid var(--line);
-  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;
-  font-size:.875rem; color:var(--muted);
-}
-.app-footer a{
-  color:var(--accent); text-decoration:none; font-weight:600;
-  display:inline-flex; align-items:center; gap:6px;
-}
-.app-footer a:hover{text-decoration:underline}
-
+.actions .tg{grid-column:1/-1;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.actions .tg:hover{filter:brightness(1.06)}
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:28px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.875rem}
+.foot .btn{color:var(--accent);font-weight:700;text-decoration:none}
 .toast{
   position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);
   background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9375rem;
@@ -310,6 +302,10 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
             <span data-i18n="shuffle"></span>
           </button>
+          <button type="button" class="btn small tg" id="tgShare">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 3.5 2.5 11l6.5 2.5 2.5 7 3-4.5 5 3.5z"/><path d="M9 13.5 21.5 3.5"/></svg>
+            <span data-i18n="tgShare"></span>
+          </button>
         </div>
       </div>
       <div class="notice" id="notice" role="alert" hidden></div>
@@ -317,25 +313,30 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
     </section>
   </main>
 
-  <!-- Telegram Contact Footer -->
-  <footer class="app-footer">
-    <div>Imtihon &copy; 2026</div>
-    <div>Questions or issues? Contact: <a href="https://t.me/ShohruhAzimov" target="_blank" rel="noopener">@ShohruhAzimov</a></div>
+  <footer class="foot">
+    <span data-i18n="contact"></span>
+    <a class="btn small" id="tg" href="https://t.me/ShohruhAzimov" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 3.5 2.5 11l6.5 2.5 2.5 7 3-4.5 5 3.5z"/><path d="M9 13.5 21.5 3.5"/></svg>
+      <span>@ShohruhAzimov</span>
+    </a>
   </footer>
 </div>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function(){
 'use strict';
-var $=function(s){return document.querySelector(s)}; var $\$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
 var LETTERS=['A','B','C','D'];
 var MAX_CHARS=60000, MIN_CHARS=150, MAX_PHOTOS=12, PHOTOS_PER_CALL=3;
 
 var T={
 en:{
   tagline:'Turn your lesson notes into a multiple-choice test.',
+  contact:'Questions or ideas? Message the author on Telegram.',
+  tgShare:'Send to Telegram',
+  tgCopied:'The test is long, so it was copied. Paste it into the Telegram chat.',
   photo:'Add photos of pages',
   readingPhotos:function(a,b){return 'Reading photos… '+a+'/'+b},
   photoBadge:'Text from photos. Check it before making the test.',
@@ -373,4 +374,494 @@ en:{
   noAI:'AI is not available in this view. Open the app while signed in to Claude.'
 },
 uz:{
-  tagline:'Dars materialidan A, B, C, D variant
+  tagline:'Dars materialidan A, B, C, D variantli test tuzing.',
+  contact:'Savol yoki gʻoyangiz bormi? Muallifga Telegramda yozing.',
+  tgShare:'Telegramga yuborish',
+  tgCopied:'Test uzun, shuning uchun nusxalandi. Telegram chatiga qoʻying.',
+  photo:'Sahifa rasmlarini qoʻshish',
+  readingPhotos:function(a,b){return 'Rasmlar oʻqilmoqda… '+a+'/'+b},
+  photoBadge:'Matn rasmlardan olindi. Test tuzishdan oldin tekshiring.',
+  photoNone:'Rasmlarda oʻqiladigan matn topilmadi.',
+  photoType:'JPEG, PNG, WebP yoki GIF rasmlardan foydalaning.',
+  photoRejected:'Rasmlardan birini oʻqib boʻlmadi. Aniqroq yoki kichikroq rasm tanlang.',
+  photoCut:'Matn oxirigacha oʻqilmadi. Bir safarda kamroq sahifa qoʻshing.',
+  s1:'Dars materiali', s2:'Test sozlamalari',
+  placeholder:'Dars matnini shu yerga qoʻying. Bir necha varaq ham boʻladi.',
+  exampleBadge:'Namuna dars. Oʻz materialingiz bilan almashtiring.',
+  chars:'belgi', tooLong:'Faqat dastlabki 60 000 belgi ishlatiladi.',
+  upload:'.txt fayllarni yuklash', clear:'Tozalash', loadExample:'Namunani yuklash',
+  questions:'Savollar soni', dec:'Kamroq savol', inc:'Koʻproq savol',
+  focus:'Nimadan savol tuzilsin', focusKey:'Asosiy gʻoyalar', focusRandom:'Tasodifiy qismlar',
+  level:'Qiyinlik', easy:'Oson', mixed:'Aralash', hard:'Qiyin',
+  outLang:'Test tili', same:'Dars tilida',
+  generate:'Testni tuzish', again:'Yangi test tuzish', making:'Test tuzilmoqda…',
+  loading:['Material oʻqilmoqda…','Savol uchun qismlar tanlanmoqda…','A, B, C, D variantlar yozilmoqda…','Javoblar tekshirilmoqda…'],
+  cancel:'Toʻxtatish',
+  results:'Sizning testingiz', showAnswers:'Javoblarni koʻrsatish',
+  copyTest:'Testni nusxalash', copyKey:'Kalitni nusxalash', save:'.txt saqlash', shuffle:'Aralashtirish',
+  remove:'Savolni olib tashlash', answerKey:'Javoblar kaliti', correct:'Toʻgʻri javob', basedOn:'Asos:',
+  header:'Test',
+  review:'Testni oʻquvchilarga berishdan oldin har bir savolni dars materialingiz bilan tekshiring. Sunʼiy intellekt xato qilishi mumkin.',
+  fewer:function(n){return 'Material qisqa boʻlgani uchun faqat '+n+' ta savol tuzildi.'},
+  emptyText:'Testingiz shu yerda, A, B, C va D javoblari bilan chiqadi.',
+  copied:'Nusxalandi', saved:'Saqlandi',
+  tooShort:'Dars materialidan kamida bir necha gap kiriting.',
+  failed:'Xatolik yuz berdi. Qayta urinib koʻring.',
+  notGranted:'Test yozishi uchun Claudeʼga ruxsat bering, keyin qayta urinib koʻring.',
+  rate:'Sunʼiy intellektning bepul kunlik limiti tugagan yoki hozir soʻrovlar juda koʻp. Iltimos, bir daqiqadan keyin yoki ertaga qayta urinib koʻring.',
+  busy:'Sunʼiy intellekt hozir band. Iltimos, bir daqiqadan keyin qayta urinib koʻring.',
+  network:'Serverga ulanib boʻlmadi. Internetni tekshirib, qayta urinib koʻring.',
+  session:'Claude hisobingizga qayta kiring va yana urinib koʻring.',
+  noAI:'Bu koʻrinishda sunʼiy intellekt mavjud emas. Ilovani Claude hisobingizga kirgan holda oching.'
+},
+ru:{
+  tagline:'Превратите материал урока в тест с вариантами A, B, C, D.',
+  contact:'Есть вопросы или идеи? Напишите автору в Telegram.',
+  tgShare:'Отправить в Telegram',
+  tgCopied:'Тест длинный, поэтому он скопирован. Вставьте его в чат Telegram.',
+  photo:'Добавить фото страниц',
+  readingPhotos:function(a,b){return 'Читаю фото… '+a+'/'+b},
+  photoBadge:'Текст с фото. Проверьте его перед составлением теста.',
+  photoNone:'На фото не найден читаемый текст.',
+  photoType:'Используйте фото JPEG, PNG, WebP или GIF.',
+  photoRejected:'Не удалось прочитать одно из фото. Попробуйте более чёткое или меньшего размера.',
+  photoCut:'Текст оказался обрезан. Добавляйте меньше страниц за раз.',
+  s1:'Материал урока', s2:'Настройки теста',
+  placeholder:'Вставьте сюда текст урока. Можно несколько страниц.',
+  exampleBadge:'Пример урока. Замените его своим материалом.',
+  chars:'символов', tooLong:'Будут использованы только первые 60 000 символов.',
+  upload:'Загрузить .txt', clear:'Очистить', loadExample:'Загрузить пример',
+  questions:'Количество вопросов', dec:'Меньше вопросов', inc:'Больше вопросов',
+  focus:'О чём спрашивать', focusKey:'Главные идеи', focusRandom:'Случайные фрагменты',
+  level:'Сложность', easy:'Лёгкий', mixed:'Смешанный', hard:'Сложный',
+  outLang:'Язык теста', same:'Как в материале',
+  generate:'Составить тест', again:'Составить новый тест', making:'Составляю тест…',
+  loading:['Читаю материал…','Выбираю, о чём спросить…','Пишу варианты A, B, C, D…','Проверяю ответы…'],
+  cancel:'Стоп',
+  results:'Ваш тест', showAnswers:'Показать ответы',
+  copyTest:'Копировать тест', copyKey:'Копировать ключ', save:'Сохранить .txt', shuffle:'Перемешать',
+  remove:'Удалить вопрос', answerKey:'Ключ ответов', correct:'Правильный ответ', basedOn:'Основано на:',
+  header:'Тест',
+  review:'Перед выдачей теста проверьте каждый вопрос по материалу урока. ИИ может ошибаться.',
+  fewer:function(n){return 'Материала мало, поэтому составлено вопросов: '+n+'.'},
+  emptyText:'Здесь появится ваш тест с вариантами A, B, C и D.',
+  copied:'Скопировано', saved:'Сохранено',
+  tooShort:'Добавьте хотя бы несколько предложений материала.',
+  failed:'Что-то пошло не так. Попробуйте ещё раз.',
+  notGranted:'Разрешите доступ к Claude, чтобы приложение составило тест, и попробуйте снова.',
+  rate:'Бесплатный дневной лимит ИИ исчерпан или сейчас слишком много запросов. Пожалуйста, попробуйте снова через минуту или завтра.',
+  busy:'ИИ сейчас занят. Пожалуйста, попробуйте снова через минуту.',
+  network:'Не удалось связаться с сервером. Проверьте интернет и повторите.',
+  session:'Войдите в Claude снова и повторите попытку.',
+  noAI:'ИИ недоступен в этом режиме. Откройте приложение, войдя в Claude.'
+}
+};
+
+var EXAMPLES={
+en:'Samarkand is one of the oldest cities in the world, more than 2,500 years old. It stood on the Great Silk Road, where merchants traded silk, paper and spices. In the 14th century Amir Temur made Samarkand the capital of his empire. The central square of the city, the Registan, is made up of three madrasas: Ulugh Beg, Sher-Dor and Tilya-Kori. The Ulugh Beg Madrasa was built between 1417 and 1420. Mirzo Ulugh Beg was a grandson of Amir Temur and a great astronomer. He built an observatory in Samarkand and compiled a catalogue of stars.',
+uz:'Samarqand dunyodagi eng qadimiy shaharlardan biri boʻlib, uning yoshi 2500 yildan ortiq. Shahar Buyuk Ipak yoʻli ustida joylashgan edi va savdogarlar bu yerda ipak, qogʻoz hamda ziravorlar bilan savdo qilishgan. XIV asrda Amir Temur Samarqandni oʻz davlatining poytaxtiga aylantirdi. Shaharning markaziy maydoni Registon uchta madrasadan iborat: Ulugʻbek, Sherdor va Tillakori. Ulugʻbek madrasasi 1417–1420-yillarda qurilgan. Mirzo Ulugʻbek Amir Temurning nabirasi va buyuk astronom edi. U Samarqandda rasadxona qurdirib, yulduzlar jadvalini tuzgan.',
+ru:'Самарканд — один из древнейших городов мира, его возраст превышает 2500 лет. Город стоял на Великом шёлковом пути, и купцы торговали здесь шёлком, бумагой и пряностями. В XIV веке Амир Темур сделал Самарканд столицей своего государства. Главная площадь города, Регистан, состоит из трёх медресе: Улугбека, Шердор и Тилля-Кари. Медресе Улугбека построено в 1417–1420 годах. Мирзо Улугбек был внуком Амира Темура и великим астрономом. Он построил в Самарканде обсерваторию и составил каталог звёзд.'
+};
+var LANGNAME={uz:'Uzbek (Latin script)',ru:'Russian',en:'English'};
+
+function store(k,v){try{if(v===undefined){return localStorage.getItem(k)}localStorage.setItem(k,v)}catch(e){return null}}
+
+var lang=(function(){
+  var s=store('imtihon-lang'); if(s&&T[s]) return s;
+  var n=(navigator.language||'en').toLowerCase();
+  return n.indexOf('uz')===0?'uz':n.indexOf('ru')===0?'ru':'en';
+})();
+
+var els={
+  material:$('#material'), chars:$('#chars'), exBadge:$('#exBadge'), over:$('#over'),
+  file:$('#file'), clear:$('#clear'), example:$('#example'),
+  countOut:$('#countOut'), dec:$('#dec'), inc:$('#inc'), outLang:$('#outLang'),
+  gen:$('#gen'), genLabel:$('#genLabel'),
+  tools:$('#tools'), qcount:$('#qcount'), showKey:$('#showKey'),
+  copyTest:$('#copyTest'), copyKey:$('#copyKey'), save:$('#save'), shuffle:$('#shuffle'),
+  notice:$('#notice'), out:$('#out'), toast:$('#toast'),
+  photo:$('#photo'), photoBtn:$('#photoBtn'), photoStatus:$('#photoStatus'), photoText:$('#photoText'),
+  photoStop:$('#photoStop'), photoBadge:$('#photoBadge')
+};
+
+var state={count:10,focus:'key',level:'mixed',outLang:'same',questions:[],showKey:false,view:'empty',busy:false,isExample:true,fewer:0,fromPhoto:false,photoBusy:false};
+var ctl=null, ticker=null, photoCtl=null;
+
+/* One call to our own serverless function. The Gemini key lives only on the server. */
+async function callApi(body,signal){
+  var res;
+  try{
+    res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:signal});
+  }catch(e){
+    if(e&&e.name==='AbortError') throw {code:'cancelled'};
+    throw {code:'network'};
+  }
+  var data=null;
+  try{data=await res.json()}catch(e){}
+  if(res.ok&&data) return data;
+  var code=res.status===429?'rate_limited':(res.status===503||res.status===504)?'busy':res.status===413?'too_large':'failed';
+  throw {code:code};
+}
+
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function fmtNum(n){try{return n.toLocaleString(lang==='ru'?'ru-RU':lang==='uz'?'uz-UZ':'en-US')}catch(e){return String(n)}}
+
+/* ---------- language ---------- */
+function applyLang(){
+  var L=T[lang];
+  document.documentElement.lang=lang;
+  $$('[data-i18n]').forEach(function(el){var v=L[el.getAttribute('data-i18n')];if(typeof v==='string')el.textContent=v});
+  $$('[data-i18n-ph]').forEach(function(el){el.placeholder=L[el.getAttribute('data-i18n-ph')]});
+  $$('[data-i18n-aria]').forEach(function(el){el.setAttribute('aria-label',L[el.getAttribute('data-i18n-aria')])});
+  $$('.langs button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-lang')===lang?'true':'false')});
+  if(state.isExample) els.material.value=EXAMPLES[lang];
+  updateMeta(); updateGenLabel(); renderOut();
+}
+
+function updateMeta(){
+  var L=T[lang], n=els.material.value.length;
+  els.chars.textContent=fmtNum(n)+' '+L.chars;
+  els.over.hidden=n<=MAX_CHARS; els.over.textContent=L.tooLong;
+  els.exBadge.hidden=!state.isExample;
+  els.photoBadge.hidden=!state.fromPhoto;
+}
+function updateGenLabel(){
+  var L=T[lang];
+  els.genLabel.innerHTML=state.busy?'<span style="display:inline-flex;align-items:center;gap:10px"><span class="spin"></span>'+esc(L.making)+'</span>':esc(state.questions.length?L.again:L.generate);
+}
+
+/* ---------- notices & toast ---------- */
+function showNotice(msg){els.notice.textContent=msg;els.notice.hidden=false}
+function hideNotice(){els.notice.hidden=true;els.notice.textContent=''}
+var toastTimer=null;
+function toast(msg){
+  els.toast.textContent=msg;els.toast.classList.add('on');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){els.toast.classList.remove('on')},1800);
+}
+
+/* ---------- rendering ---------- */
+var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+var XICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+function qHtml(q,i){
+  var L=T[lang];
+  var opts=q.opts.map(function(o,j){
+    var key=state.showKey&&j===q.ans;
+    return '<li class="opt'+(key?' is-key':'')+'"><span class="bub">'+LETTERS[j]+'</span><span class="ot">'+esc(o)+'</span>'+(key?'<span class="ok" role="img" aria-label="'+esc(L.correct)+'">'+CHECK+'</span>':'')+'</li>';
+  }).join('');
+  return '<article class="q"><div class="q-head"><span class="qn">'+(i+1)+'</span><h3 class="qt">'+esc(q.q)+'</h3>'+
+    '<button type="button" class="rm" data-rm="'+i+'" aria-label="'+esc(L.remove)+'" title="'+esc(L.remove)+'">'+XICON+'</button></div>'+
+    '<ol class="opts">'+opts+'</ol>'+
+    (state.showKey&&q.note?'<p class="src"><span>'+esc(L.basedOn)+'</span>'+esc(q.note)+'</p>':'')+
+    '</article>';
+}
+
+function emptyHtml(){
+  var L=T[lang];
+  return '<div class="empty"><svg viewBox="0 0 120 64" fill="none" aria-hidden="true">'+
+    '<g stroke="currentColor" stroke-width="2">'+
+    '<circle cx="18" cy="32" r="13"/><circle cx="48" cy="32" r="13"/><circle cx="78" cy="32" r="13"/><circle cx="108" cy="32" r="13" opacity=".35"/></g>'+
+    '<g fill="currentColor" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700" text-anchor="middle">'+
+    '<text x="18" y="37">A</text><text x="48" y="37">B</text><text x="78" y="37">C</text><text x="108" y="37" opacity=".35">D</text></g></svg>'+
+    '<p>'+esc(L.emptyText)+'</p></div>';
+}
+
+function skeletonHtml(){
+  var L=T[lang];
+  var card='<div class="skel"><div class="bar w1"></div><div class="bar w2"></div><div class="bar opt-bar"></div><div class="bar opt-bar"></div></div>';
+  return '<div class="loading-bar"><span class="msg"><span class="spin"></span><span id="loadmsg">'+esc(L.loading[0])+'</span></span>'+
+    '<button type="button" class="btn small" id="cancel">'+esc(L.cancel)+'</button></div>'+card+card+card;
+}
+
+function renderOut(){
+  var L=T[lang];
+  var hasList=state.view==='list'&&state.questions.length>0;
+  els.tools.hidden=!hasList;
+  if(state.view==='loading'){els.out.innerHTML=skeletonHtml();return}
+  if(!hasList){els.out.innerHTML=emptyHtml();return}
+  var html=state.questions.map(qHtml).join('');
+  if(state.showKey){
+    html+='<section class="key"><h3>'+esc(L.answerKey)+'</h3><ol>'+state.questions.map(function(q,i){
+      return '<li><span>'+(i+1)+'</span><b>'+LETTERS[q.ans]+'</b></li>';
+    }).join('')+'</ol></section>';
+  }
+  if(state.fewer) html+='<p class="review">'+esc(L.fewer(state.fewer))+'</p>';
+  html+='<p class="review">'+esc(L.review)+'</p>';
+  els.out.innerHTML=html;
+  els.qcount.textContent=String(state.questions.length);
+}
+
+function startTicker(){
+  var i=0;stopTicker();
+  ticker=setInterval(function(){
+    var el=$('#loadmsg');if(!el)return;
+    var msgs=T[lang].loading;i=(i+1)%msgs.length;el.textContent=msgs[i];
+  },4500);
+}
+function stopTicker(){if(ticker){clearInterval(ticker);ticker=null}}
+
+/* ---------- building the test ---------- */
+function cleanOption(v){
+  var s=typeof v==='string'?v:(v==null?'':String(v));
+  return s.replace(/^\s*\(?[A-Da-d][\)\.:]\s+/,'').trim();
+}
+function cleanItems(arr){
+  if(!Array.isArray(arr)) return [];
+  var seen={},out=[];
+  arr.forEach(function(it){
+    if(!it||typeof it!=='object') return;
+    var q=cleanOption(it.q!=null?it.q:it.question);
+    var correct=cleanOption(it.correct);
+    var wrongRaw=Array.isArray(it.wrong)?it.wrong:[];
+    if(!q||!correct) return;
+    var used={};used[correct.toLowerCase()]=1;
+    var w=[];
+    wrongRaw.forEach(function(x){
+      var s=cleanOption(x);if(!s)return;
+      var k=s.toLowerCase();
+      if(!used[k]&&w.length<3){used[k]=1;w.push(s)}
+    });
+    if(w.length<3) return;
+    var qk=q.toLowerCase();if(seen[qk]) return;seen[qk]=1;
+    out.push({q:q,correct:correct,wrong:w,note:typeof it.note==='string'?it.note.trim():''});
+  });
+  return out.slice(0,state.count);
+}
+/* spread the correct answers evenly over A, B, C, D */
+function place(items){
+  var slots=[];for(var i=0;i<items.length;i++)slots.push(i%4);
+  slots=shuffle(slots);
+  return items.map(function(it,i){
+    var opts=shuffle(it.wrong),pos=slots[i];
+    opts.splice(pos,0,it.correct);
+    return {q:it.q,opts:opts,ans:pos,note:it.note};
+  });
+}
+
+async function generate(){
+  if(state.busy) return;
+  var L=T[lang];
+  var text=els.material.value.trim();
+  hideNotice();
+  if(text.length<MIN_CHARS){showNotice(L.tooShort);return}
+  if(text.length>MAX_CHARS) text=text.slice(0,MAX_CHARS);
+  var prevView=state.questions.length?'list':'empty';
+  state.busy=true;els.gen.disabled=true;state.view='loading';
+  updateGenLabel();renderOut();startTicker();
+  ctl=new AbortController();
+  try{
+    var data=await callApi({action:'test',text:text,count:state.count,focus:state.focus,level:state.level,outLang:state.outLang},ctl.signal);
+    var raw=data.questions;
+    var items=cleanItems(raw);
+    if(!items.length){state.view=prevView;showNotice(L.failed);return}
+    state.questions=place(items);
+    state.fewer=items.length<state.count?items.length:0;
+    state.showKey=false;els.showKey.checked=false;state.view='list';
+  }catch(e){
+    state.view=prevView;
+    var code=e&&e.code;
+    if(code==='cancelled'){/* stopped by the teacher */}
+    else if(code==='rate_limited'){showNotice(L.rate)}
+    else if(code==='busy'){showNotice(L.busy)}
+    else if(code==='network'){showNotice(L.network)}
+    else{showNotice(L.failed)}
+  }finally{
+    stopTicker();state.busy=false;ctl=null;
+    els.gen.disabled=false;
+    updateGenLabel();renderOut();
+    if(state.view==='list'&&window.matchMedia&&window.matchMedia('(max-width:899px)').matches){
+      try{els.out.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}
+    }
+  }
+}
+/* ---------- text export ---------- */
+function testText(){
+  var L=T[lang],s=L.header+'\n\n';
+  state.questions.forEach(function(q,i){
+    s+=(i+1)+'. '+q.q+'\n';
+    q.opts.forEach(function(o,j){s+='   '+LETTERS[j]+') '+o+'\n'});
+    s+='\n';
+  });
+  return s.trim()+'\n';
+}
+function keyText(){
+  var L=T[lang];
+  return L.answerKey+': '+state.questions.map(function(q,i){return (i+1)+'-'+LETTERS[q.ans]}).join(', ')+'\n';
+}
+async function copyText(text){
+  try{await navigator.clipboard.writeText(text);return true}catch(e){}
+  try{
+    var ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');
+    ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    var ok=document.execCommand('copy');document.body.removeChild(ta);return ok;
+  }catch(e){return false}
+}
+
+/* ---------- events ---------- */
+$$('.langs button').forEach(function(b){
+  b.addEventListener('click',function(){lang=b.getAttribute('data-lang');store('imtihon-lang',lang);applyLang()});
+});
+
+var saveTimer=null;
+els.material.addEventListener('input',function(){
+  state.isExample=false;updateMeta();
+  clearTimeout(saveTimer);saveTimer=setTimeout(function(){store('imtihon-material',els.material.value)},400);
+});
+els.clear.addEventListener('click',function(){
+  state.isExample=false;state.fromPhoto=false;els.material.value='';store('imtihon-material','');updateMeta();els.material.focus();
+});
+els.example.addEventListener('click',function(){
+  state.isExample=true;state.fromPhoto=false;els.material.value=EXAMPLES[lang];store('imtihon-material','');updateMeta();
+});
+els.file.addEventListener('change',async function(){
+  var files=Array.prototype.slice.call(els.file.files||[]),parts=[];
+  for(var i=0;i<files.length;i++){try{var t=(await files[i].text()).trim();if(t)parts.push(t)}catch(e){}}
+  els.file.value='';
+  if(!parts.length) return;
+  var joined=parts.join('\n\n');
+  var cur=els.material.value.trim();
+  els.material.value=(state.isExample||!cur)?joined:cur+'\n\n'+joined;
+  state.isExample=false;store('imtihon-material',els.material.value);updateMeta();
+});
+
+function setCount(n){state.count=Math.max(5,Math.min(30,n));els.countOut.textContent=String(state.count)}
+els.dec.addEventListener('click',function(){setCount(state.count-1)});
+els.inc.addEventListener('click',function(){setCount(state.count+1)});
+$$('input[name="focus"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)state.focus=r.value})});
+$$('input[name="level"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)state.level=r.value})});
+els.outLang.addEventListener('change',function(){state.outLang=els.outLang.value});
+
+els.gen.addEventListener('click',generate);
+els.showKey.addEventListener('change',function(){state.showKey=els.showKey.checked;renderOut()});
+els.out.addEventListener('click',function(e){
+  var rm=e.target.closest('[data-rm]');
+  if(rm){
+    var i=parseInt(rm.getAttribute('data-rm'),10);
+    state.questions.splice(i,1);
+    if(!state.questions.length){state.view='empty';state.fewer=0}
+    updateGenLabel();renderOut();return;
+  }
+  if(e.target.closest('#cancel')&&ctl)ctl.abort();
+});
+els.copyTest.addEventListener('click',async function(){
+  var ok=await copyText(testText());toast(ok?T[lang].copied:T[lang].failed);
+});
+els.copyKey.addEventListener('click',async function(){
+  var ok=await copyText(keyText());toast(ok?T[lang].copied:T[lang].failed);
+});
+els.save.addEventListener('click',function(){
+  try{
+    var blob=new Blob(['\uFEFF'+testText()+'\n'+keyText()],{type:'text/plain;charset=utf-8'});
+    var url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='test.txt';document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url)},1000);
+    toast(T[lang].saved);
+  }catch(e){toast(T[lang].failed)}
+});
+/* ---------- send the test to Telegram ---------- */
+var TG_MAX=3500; /* Telegram messages hold up to 4096 characters */
+$('#tgShare').addEventListener('click',function(){
+  if(!state.questions.length) return;
+  var text=testText(),site=location.href.split('#')[0];
+  var link='https://t.me/share/url?url='+encodeURIComponent(site)+'&text=';
+  var copied=null;
+  if(text.length<=TG_MAX){
+    link+=encodeURIComponent(text);
+  }else{
+    copied=copyText(text);              /* too long for a link: copy it, the teacher pastes it */
+    link+=encodeURIComponent(T[lang].header);
+  }
+  var w=window.open(link,'_blank','noopener');
+  if(!w) location.href=link;
+  if(copied) copied.then(function(ok){toast(ok?T[lang].tgCopied:T[lang].failed)});
+});
+els.shuffle.addEventListener('click',function(){
+  var base=state.questions.map(function(q){
+    return {q:q.q,correct:q.opts[q.ans],wrong:q.opts.filter(function(_,j){return j!==q.ans}),note:q.note};
+  });
+  state.questions=place(shuffle(base));renderOut();
+});
+
+/* ---------- photos of book pages ---------- */
+function showPhotoStatus(done,total){
+  els.photoStatus.hidden=false;
+  els.photoText.textContent=T[lang].readingPhotos(done,total);
+}
+/* Shrink each photo to about 1600 px so the request stays small and fast. */
+function fileToJpeg(file){
+  return new Promise(function(resolve,reject){
+    var url=URL.createObjectURL(file),img=new Image();
+    img.onload=function(){
+      var w=img.naturalWidth,h=img.naturalHeight,k=Math.min(1,1600/Math.max(w,h));
+      var c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg',0.82).split(',')[1]);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);reject({code:'image_rejected'})};
+    img.src=url;
+  });
+}
+els.photoStop.addEventListener('click',function(){if(photoCtl)photoCtl.abort()});
+els.photo.addEventListener('change',async function(){
+  var all=Array.prototype.slice.call(els.photo.files||[]);
+  els.photo.value='';
+  if(!all.length||state.photoBusy) return;
+  var L=T[lang];
+  hideNotice();
+  var files=all.filter(function(f){return /^image\//.test(f.type)}).slice(0,MAX_PHOTOS);
+  if(!files.length){showNotice(L.photoType);return}
+  state.photoBusy=true;els.photo.disabled=true;
+  photoCtl=new AbortController();
+  var batches=[];
+  for(var i=0;i<files.length;i+=PHOTOS_PER_CALL) batches.push(files.slice(i,i+PHOTOS_PER_CALL));
+  var done=0,texts=[],cut=false;
+  showPhotoStatus(done,files.length);
+  try{
+    for(var b=0;b<batches.length;b++){
+      var imgs=[];
+      for(var k=0;k<batches[b].length;k++){
+        imgs.push({mime:'image/jpeg',data:await fileToJpeg(batches[b][k])});
+      }
+      var data=await callApi({action:'ocr',images:imgs},photoCtl.signal);
+      var t=(data.text||'').trim();
+      if(t) texts.push(t);
+      if(data.truncated) cut=true;
+      done+=batches[b].length;showPhotoStatus(done,files.length);
+    }
+    var text=texts.join('\n\n').trim();
+    if(!text||text==='[unreadable]'){showNotice(L.photoNone)}
+    else{
+      var cur=els.material.value.trim();
+      els.material.value=(state.isExample||!cur)?text:cur+'\n\n'+text;
+      els.material.scrollTop=0;
+      state.isExample=false;state.fromPhoto=true;
+      store('imtihon-material',els.material.value);updateMeta();
+      if(cut) showNotice(L.photoCut);
+    }
+  }catch(e){
+    var code=e&&e.code;
+    if(code==='cancelled'){/* stopped */}
+    else if(code==='image_rejected'||code==='too_large'){showNotice(L.photoRejected)}
+    else if(code==='rate_limited'){showNotice(L.rate)}
+    else if(code==='busy'){showNotice(L.busy)}
+    else if(code==='network'){showNotice(L.network)}
+    else{showNotice(L.failed)}
+  }finally{
+    state.photoBusy=false;els.photo.disabled=false;photoCtl=null;
+    els.photoStatus.hidden=true;
+  }
+});
+
+/* ---------- start ---------- */
+(function init(){
+  var saved=store('imtihon-material');
+  if(saved&&saved.trim()){els.material.value=saved;state.isExample=false}
+  applyLang();
+})();
+})();
+</script>
+</body>
+</html>
