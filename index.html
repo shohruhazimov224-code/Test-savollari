@@ -320,10 +320,6 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
             <span data-i18n="shuffle"></span>
           </button>
-          <button type="button" class="btn small tg" id="tgShare">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 3.5 2.5 11l6.5 2.5 2.5 7 3-4.5 5 3.5z"/><path d="M9 13.5 21.5 3.5"/></svg>
-            <span data-i18n="tgShare"></span>
-          </button>
         </div>
       </div>
       <div class="notice" id="notice" role="alert" hidden></div>
@@ -799,23 +795,6 @@ els.save.addEventListener('click',async function(){
     setTimeout(function(){URL.revokeObjectURL(url)},10000);
     toast(L.saved);
   }catch(e){toast(S.manual,4000)}
-});
-/* ---------- send the test to Telegram ---------- */
-$('#tgShare').addEventListener('click',function(){
-  if(!state.questions.length) return;
-  var S=SHARE_T[lang]||SHARE_T.en;
-  var text=testText(),site=location.href.split('#')[0];
-  var link='https://t.me/share/url?url='+encodeURIComponent(site)+'&text=';
-  var copied=null;
-  if(text.length<=TG_LINK_MAX){
-    link+=encodeURIComponent(text);
-  }else{
-    copied=copyText(text);              /* too long for the share box: copy it, the teacher pastes it */
-    link+=encodeURIComponent(T[lang].header);
-  }
-  var w=window.open(link,'_blank','noopener');
-  if(!w) location.href=link;
-  if(copied) copied.then(function(ok){toast(ok?S.tgPaste:T[lang].failed,5000)});
 });
 SHARE_T.en.pdfTg='PDF cannot be saved inside Telegram. Open this site in Safari or Chrome first.';
 SHARE_T.uz.pdfTg='PDFni Telegram ichida saqlab boʻlmaydi. Avval saytni Safari yoki Chrome da oching.';
