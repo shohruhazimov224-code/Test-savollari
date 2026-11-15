@@ -182,10 +182,24 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
   .spin,.bar{animation:none}
   .toast,.track,.track::after{transition:none}
 }
+#printArea{display:none}
+.openbar{margin-bottom:14px;padding:12px 14px;border-radius:12px;background:var(--bad-soft);color:var(--fg);font-size:.9375rem;display:flex;flex-direction:column;gap:10px}
+.openbar b{font-weight:700}
+.openbar .row{display:flex;gap:8px;flex-wrap:wrap}
+@media print{
+  body{background:#fff!important}
+  .shell,.toast{display:none!important}
+  #printArea{display:block;color:#000;font:14pt/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  #printArea h1{font-size:18pt;margin:0 0 14pt}
+  #printArea .pq{margin:0 0 12pt;break-inside:avoid;white-space:pre-wrap}
+  #printArea .po{margin-left:18pt}
+  #printArea .key{break-before:page}
+}
 </style>
 </head>
 <body>
 <div class="shell">
+  <div class="openbar" id="openbar" hidden></div>
   <header class="top">
     <div class="brand">
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
@@ -298,6 +312,10 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
             <span data-i18n="save"></span>
           </button>
+          <button type="button" class="btn small" id="pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            <span data-i18n="pdf"></span>
+          </button>
           <button type="button" class="btn small" id="shuffle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
             <span data-i18n="shuffle"></span>
@@ -321,6 +339,7 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
     </a>
   </footer>
 </div>
+<div id="printArea" aria-hidden="true"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -357,7 +376,7 @@ en:{
   loading:['Reading your material…','Choosing what to ask about…','Writing the A, B, C, D options…','Checking the answers…'],
   cancel:'Stop',
   results:'Your test', showAnswers:'Show answers',
-  copyTest:'Copy test', copyKey:'Copy answer key', save:'Save .txt', shuffle:'Shuffle',
+  copyTest:'Copy test', copyKey:'Copy answer key', save:'Save .txt', pdf:'Save PDF', shuffle:'Shuffle',
   remove:'Remove question', answerKey:'Answer key', correct:'Correct answer', basedOn:'Based on:',
   header:'Test',
   review:'Check every question against your lesson before you give the test. AI can make mistakes.',
@@ -398,7 +417,7 @@ uz:{
   loading:['Material oʻqilmoqda…','Savol uchun qismlar tanlanmoqda…','A, B, C, D variantlar yozilmoqda…','Javoblar tekshirilmoqda…'],
   cancel:'Toʻxtatish',
   results:'Sizning testingiz', showAnswers:'Javoblarni koʻrsatish',
-  copyTest:'Testni nusxalash', copyKey:'Kalitni nusxalash', save:'.txt saqlash', shuffle:'Aralashtirish',
+  copyTest:'Testni nusxalash', copyKey:'Kalitni nusxalash', save:'.txt saqlash', pdf:'PDF saqlash', shuffle:'Aralashtirish',
   remove:'Savolni olib tashlash', answerKey:'Javoblar kaliti', correct:'Toʻgʻri javob', basedOn:'Asos:',
   header:'Test',
   review:'Testni oʻquvchilarga berishdan oldin har bir savolni dars materialingiz bilan tekshiring. Sunʼiy intellekt xato qilishi mumkin.',
@@ -439,7 +458,7 @@ ru:{
   loading:['Читаю материал…','Выбираю, о чём спросить…','Пишу варианты A, B, C, D…','Проверяю ответы…'],
   cancel:'Стоп',
   results:'Ваш тест', showAnswers:'Показать ответы',
-  copyTest:'Копировать тест', copyKey:'Копировать ключ', save:'Сохранить .txt', shuffle:'Перемешать',
+  copyTest:'Копировать тест', copyKey:'Копировать ключ', save:'Сохранить .txt', pdf:'Сохранить PDF', shuffle:'Перемешать',
   remove:'Удалить вопрос', answerKey:'Ключ ответов', correct:'Правильный ответ', basedOn:'Основано на:',
   header:'Тест',
   review:'Перед выдачей теста проверьте каждый вопрос по материалу урока. ИИ может ошибаться.',
@@ -535,9 +554,9 @@ function updateGenLabel(){
 function showNotice(msg){els.notice.textContent=msg;els.notice.hidden=false}
 function hideNotice(){els.notice.hidden=true;els.notice.textContent=''}
 var toastTimer=null;
-function toast(msg){
+function toast(msg,ms){
   els.toast.textContent=msg;els.toast.classList.add('on');
-  clearTimeout(toastTimer);toastTimer=setTimeout(function(){els.toast.classList.remove('on')},1800);
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){els.toast.classList.remove('on')},ms||1800);
 }
 
 /* ---------- rendering ---------- */
@@ -750,31 +769,91 @@ els.copyTest.addEventListener('click',async function(){
 els.copyKey.addEventListener('click',async function(){
   var ok=await copyText(keyText());toast(ok?T[lang].copied:T[lang].failed);
 });
-els.save.addEventListener('click',function(){
+var SHARE_T={
+  en:{inTg:'Telegramʼs built-in browser cannot save files. The test was copied: paste it into a chat, or open this site in Safari/Chrome to save the .txt file.',
+      tgPaste:'The test was copied. Paste it into the Telegram chat.',manual:'Could not save. Use the Copy button instead.'},
+  uz:{inTg:'Telegramning ichki brauzeri fayl saqlay olmaydi. Test nusxalandi: chatga qoʻying yoki .txt saqlash uchun saytni Safari/Chrome da oching.',
+      tgPaste:'Test nusxalandi. Telegram chatiga qoʻying.',manual:'Saqlab boʻlmadi. Oʻrniga “Nusxalash” tugmasidan foydalaning.'},
+  ru:{inTg:'Встроенный браузер Telegram не умеет сохранять файлы. Тест скопирован: вставьте его в чат или откройте сайт в Safari/Chrome, чтобы сохранить .txt.',
+      tgPaste:'Тест скопирован. Вставьте его в чат Telegram.',manual:'Не удалось сохранить. Используйте кнопку «Копировать».'}
+};
+var TG_LINK_MAX=700; /* the Telegram share box rejects long text, so longer tests are pasted instead */
+function inTelegramBrowser(){return /Telegram/i.test(navigator.userAgent||'')||!!window.TelegramWebview||!!window.TelegramWebviewProxy}
+els.save.addEventListener('click',async function(){
+  var L=T[lang],S=SHARE_T[lang]||SHARE_T.en;
+  var content='﻿'+testText()+'\n'+keyText();
   try{
-    var blob=new Blob(['\uFEFF'+testText()+'\n'+keyText()],{type:'text/plain;charset=utf-8'});
+    if(inTelegramBrowser()){
+      var ok0=await copyText(testText()+'\n'+keyText());
+      toast(ok0?S.inTg:S.manual,6000);return;
+    }
+    var file=null;
+    try{file=new File([content],'test.txt',{type:'text/plain'})}catch(e){}
+    if(file&&navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file]});return}
+      catch(e){if(e&&e.name==='AbortError')return}
+    }
+    var blob=new Blob([content],{type:'text/plain;charset=utf-8'});
     var url=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=url;a.download='test.txt';document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(function(){URL.revokeObjectURL(url)},1000);
-    toast(T[lang].saved);
-  }catch(e){toast(T[lang].failed)}
+    setTimeout(function(){URL.revokeObjectURL(url)},10000);
+    toast(L.saved);
+  }catch(e){toast(S.manual,4000)}
 });
 /* ---------- send the test to Telegram ---------- */
-var TG_MAX=3500; /* Telegram messages hold up to 4096 characters */
 $('#tgShare').addEventListener('click',function(){
   if(!state.questions.length) return;
+  var S=SHARE_T[lang]||SHARE_T.en;
   var text=testText(),site=location.href.split('#')[0];
   var link='https://t.me/share/url?url='+encodeURIComponent(site)+'&text=';
   var copied=null;
-  if(text.length<=TG_MAX){
+  if(text.length<=TG_LINK_MAX){
     link+=encodeURIComponent(text);
   }else{
-    copied=copyText(text);              /* too long for a link: copy it, the teacher pastes it */
+    copied=copyText(text);              /* too long for the share box: copy it, the teacher pastes it */
     link+=encodeURIComponent(T[lang].header);
   }
   var w=window.open(link,'_blank','noopener');
   if(!w) location.href=link;
-  if(copied) copied.then(function(ok){toast(ok?T[lang].tgCopied:T[lang].failed)});
+  if(copied) copied.then(function(ok){toast(ok?S.tgPaste:T[lang].failed,5000)});
+});
+SHARE_T.en.pdfTg='PDF cannot be saved inside Telegram. Open this site in Safari or Chrome first.';
+SHARE_T.uz.pdfTg='PDFni Telegram ichida saqlab boʻlmaydi. Avval saytni Safari yoki Chrome da oching.';
+SHARE_T.ru.pdfTg='В Telegram PDF сохранить нельзя. Сначала откройте сайт в Safari или Chrome.';
+SHARE_T.en.bar='You opened Imtihon inside Telegram. To save a PDF or .txt file, open it in your browser: tap the ⋯ menu (or the share icon) and choose “Open in Safari” or “Open in Chrome”.';
+SHARE_T.uz.bar='Siz Imtihonni Telegram ichida ochdingiz. PDF yoki .txt saqlash uchun uni brauzerda oching: ⋯ menyusini (yoki ulashish belgisini) bosing va “Open in Safari” yoki “Open in Chrome” ni tanlang.';
+SHARE_T.ru.bar='Вы открыли Imtihon внутри Telegram. Чтобы сохранить PDF или .txt, откройте сайт в браузере: нажмите меню ⋯ (или значок «поделиться») и выберите «Open in Safari» или «Open in Chrome».';
+SHARE_T.en.copyLink='Copy link';SHARE_T.uz.copyLink='Havolani nusxalash';SHARE_T.ru.copyLink='Копировать ссылку';
+SHARE_T.en.chrome='Open in Chrome';SHARE_T.uz.chrome='Chrome da ochish';SHARE_T.ru.chrome='Открыть в Chrome';
+function renderOpenBar(){
+  var bar=document.getElementById('openbar');
+  if(!inTelegramBrowser()){bar.hidden=true;return}
+  var S=SHARE_T[lang]||SHARE_T.en,site=location.href.split('#')[0];
+  bar.hidden=false;
+  var h='<div>'+esc(S.bar)+'</div><div class="row"><button type="button" class="btn small" id="barCopy">'+esc(S.copyLink)+'</button>';
+  if(/Android/i.test(navigator.userAgent)){
+    h+='<a class="btn small" href="intent://'+esc(location.host+location.pathname+location.search)+'#Intent;scheme=https;package=com.android.chrome;end">'+esc(S.chrome)+'</a>';
+  }
+  bar.innerHTML=h+'</div>';
+  document.getElementById('barCopy').onclick=async function(){var ok=await copyText(site);toast(ok?T[lang].copied:T[lang].failed)};
+}
+renderOpenBar();
+document.querySelectorAll('[data-lang]').forEach(function(b){b.addEventListener('click',renderOpenBar)});
+els.pdf=$('#pdf');
+els.pdf.addEventListener('click',function(){
+  if(!state.questions.length) return;
+  var S=SHARE_T[lang]||SHARE_T.en,L=T[lang];
+  if(inTelegramBrowser()){toast(S.pdfTg,6000);return}
+  var h='<h1>'+esc(L.header)+'</h1>';
+  state.questions.forEach(function(q,i){
+    h+='<div class="pq"><b>'+(i+1)+'. '+esc(q.q)+'</b>';
+    q.opts.forEach(function(o,j){h+='<div class="po">'+LETTERS[j]+') '+esc(o)+'</div>'});
+    h+='</div>';
+  });
+  h+='<div class="key"><h1>'+esc(L.answerKey)+'</h1><div>'+state.questions.map(function(q,i){return (i+1)+'-'+LETTERS[q.ans]}).join(', ')+'</div></div>';
+  document.getElementById('printArea').innerHTML=h;
+  var old=document.title;document.title='test';
+  setTimeout(function(){window.print();setTimeout(function(){document.title=old},500)},50);
 });
 els.shuffle.addEventListener('click',function(){
   var base=state.questions.map(function(q){
