@@ -241,6 +241,11 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             <span data-i18n="photo"></span>
           </label>
           <input id="photo" type="file" accept="image/*" multiple hidden>
+          <label class="btn small" for="pdfFile" id="pdfInBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            <span data-i18n="pdfIn"></span>
+          </label>
+          <input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden>
           <button type="button" class="btn small quiet" id="clear" data-i18n="clear"></button>
           <button type="button" class="btn small quiet" id="example" data-i18n="loadExample"></button>
         </div>
@@ -362,7 +367,8 @@ en:{
   tgCopied:'The test is long, so it was copied. Paste it into the Telegram chat.',
   photo:'Add photos of pages',
   readingPhotos:function(a,b){return 'Reading photos… '+a+'/'+b},
-  photoBadge:'Text from photos. Check it before making the test.',
+  photoBadge:'Text read by AI from photos or a PDF. Check it before making the test.',
+  pdfIn:'Upload PDF', readingPdf:'Reading the PDF…', pdfBig:'This PDF is too big. Use a PDF under about 2.5 MB, or split it into parts.', pdfBad:'Could not read this PDF. Try another file.',
   photoNone:'No readable text found in the photos.',
   photoType:'Use JPEG, PNG, WebP or GIF photos.',
   photoRejected:'One of the photos could not be read. Try a clearer or smaller one.',
@@ -404,7 +410,8 @@ uz:{
   tgCopied:'Test uzun, shuning uchun nusxalandi. Telegram chatiga qoʻying.',
   photo:'Sahifa rasmlarini qoʻshish',
   readingPhotos:function(a,b){return 'Rasmlar oʻqilmoqda… '+a+'/'+b},
-  photoBadge:'Matn rasmlardan olindi. Test tuzishdan oldin tekshiring.',
+  photoBadge:'Matn sunʼiy intellekt tomonidan rasm yoki PDFdan oʻqildi. Test tuzishdan oldin tekshiring.',
+  pdfIn:'PDF yuklash', readingPdf:'PDF oʻqilmoqda…', pdfBig:'Bu PDF juda katta. Taxminan 2,5 MB dan kichik PDF tanlang yoki uni qismlarga boʻling.', pdfBad:'Bu PDFni oʻqib boʻlmadi. Boshqa fayl tanlang.',
   photoNone:'Rasmlarda oʻqiladigan matn topilmadi.',
   photoType:'JPEG, PNG, WebP yoki GIF rasmlardan foydalaning.',
   photoRejected:'Rasmlardan birini oʻqib boʻlmadi. Aniqroq yoki kichikroq rasm tanlang.',
@@ -446,7 +453,8 @@ ru:{
   tgCopied:'Тест длинный, поэтому он скопирован. Вставьте его в чат Telegram.',
   photo:'Добавить фото страниц',
   readingPhotos:function(a,b){return 'Читаю фото… '+a+'/'+b},
-  photoBadge:'Текст с фото. Проверьте его перед составлением теста.',
+  photoBadge:'Текст прочитан ИИ с фото или PDF. Проверьте его перед составлением теста.',
+  pdfIn:'Загрузить PDF', readingPdf:'Читаю PDF…', pdfBig:'Этот PDF слишком большой. Возьмите PDF меньше примерно 2,5 МБ или разделите его на части.', pdfBad:'Не удалось прочитать этот PDF. Попробуйте другой файл.',
   photoNone:'На фото не найден читаемый текст.',
   photoType:'Используйте фото JPEG, PNG, WebP или GIF.',
   photoRejected:'Не удалось прочитать одно из фото. Попробуйте более чёткое или меньшего размера.',
@@ -638,7 +646,9 @@ function cleanItems(arr){
   arr.forEach(function(it){
     if(!it||typeof it!=='object') return;
     var q=cleanOption(it.q!=null?it.q:it.question);
-    if(it.type==='tf'&&typeof it.truth==='boolean'){
+    var kind=it.kind||it.type;
+    if(q.length<8&&/^(mcq|tf)$/i.test(q)) return;
+    if(kind==='tf'&&typeof it.truth==='boolean'){
       var tl=cleanOption(it.trueLabel)||'True',fl=cleanOption(it.falseLabel)||'False';
       if(!q||tl.toLowerCase()===fl.toLowerCase()) return;
       var tk=q.toLowerCase();if(seen[tk]) return;seen[tk]=1;
@@ -932,6 +942,53 @@ els.photo.addEventListener('change',async function(){
     else{showNotice(L.failed)}
   }finally{
     state.photoBusy=false;els.photo.disabled=false;photoCtl=null;
+    els.photoStatus.hidden=true;
+  }
+});
+
+/* ---------- PDF of a lesson ---------- */
+var MAX_PDF_BYTES=2600000;
+function fileToBase64(file){
+  return new Promise(function(resolve,reject){
+    var r=new FileReader();
+    r.onload=function(){resolve(String(r.result).split(',')[1]||'')};
+    r.onerror=function(){reject({code:'failed'})};
+    r.readAsDataURL(file);
+  });
+}
+$('#pdfFile').addEventListener('change',async function(){
+  var input=$('#pdfFile'),f=input.files&&input.files[0];
+  input.value='';
+  if(!f||state.photoBusy) return;
+  var L=T[lang];
+  hideNotice();
+  if(f.size>MAX_PDF_BYTES){showNotice(L.pdfBig);return}
+  state.photoBusy=true;input.disabled=true;els.photo.disabled=true;
+  photoCtl=new AbortController();
+  els.photoStatus.hidden=false;els.photoText.textContent=L.readingPdf;
+  try{
+    var b64=await fileToBase64(f);
+    var data=await callApi({action:'pdf',data:b64},photoCtl.signal);
+    var text=(data.text||'').trim();
+    if(!text||text==='[unreadable]'){showNotice(L.pdfBad)}
+    else{
+      var cur=els.material.value.trim();
+      els.material.value=(state.isExample||!cur)?text:cur+'\n\n'+text;
+      els.material.scrollTop=0;
+      state.isExample=false;state.fromPhoto=true;
+      store('imtihon-material',els.material.value);updateMeta();
+      if(data.truncated) showNotice(L.photoCut);
+    }
+  }catch(e){
+    var code=e&&e.code;
+    if(code==='cancelled'){/* stopped */}
+    else if(code==='too_large'){showNotice(L.pdfBig)}
+    else if(code==='rate_limited'){showNotice(L.rate)}
+    else if(code==='busy'){showNotice(L.busy)}
+    else if(code==='network'){showNotice(L.network)}
+    else{showNotice(L.pdfBad)}
+  }finally{
+    state.photoBusy=false;input.disabled=false;els.photo.disabled=false;photoCtl=null;
     els.photoStatus.hidden=true;
   }
 });
