@@ -270,6 +270,14 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             </div>
           </div>
           <div>
+            <span class="lbl" id="l-qtype" data-i18n="qtype"></span>
+            <div class="seg" role="radiogroup" aria-labelledby="l-qtype">
+              <label><input type="radio" name="qtype" id="qtype-mcq" value="mcq" checked><span data-i18n="qMcq"></span></label>
+              <label><input type="radio" name="qtype" id="qtype-tf" value="tf"><span data-i18n="qTf"></span></label>
+              <label><input type="radio" name="qtype" id="qtype-mixed" value="mixed"><span data-i18n="qMixed"></span></label>
+            </div>
+          </div>
+          <div>
             <span class="lbl" id="l-level" data-i18n="level"></span>
             <div class="seg" role="radiogroup" aria-labelledby="l-level">
               <label><input type="radio" name="level" id="level-easy" value="easy"><span data-i18n="easy"></span></label>
@@ -367,6 +375,7 @@ en:{
   questions:'Number of questions', dec:'Fewer questions', inc:'More questions',
   focus:'What to ask about', focusKey:'Key ideas', focusRandom:'Random parts',
   level:'Difficulty', easy:'Easy', mixed:'Mixed', hard:'Hard',
+  qtype:'Question type', qMcq:'A / B / C / D', qTf:'True / False', qMixed:'Mixed',
   outLang:'Test language', same:'Same as the lesson',
   generate:'Make the test', again:'Make a new test', making:'Making your test…',
   loading:['Reading your material…','Choosing what to ask about…','Writing the A, B, C, D options…','Checking the answers…'],
@@ -408,6 +417,7 @@ uz:{
   questions:'Savollar soni', dec:'Kamroq savol', inc:'Koʻproq savol',
   focus:'Nimadan savol tuzilsin', focusKey:'Asosiy gʻoyalar', focusRandom:'Tasodifiy qismlar',
   level:'Qiyinlik', easy:'Oson', mixed:'Aralash', hard:'Qiyin',
+  qtype:'Savol turi', qMcq:'A / B / C / D', qTf:'Toʻgʻri / Notoʻgʻri', qMixed:'Aralash',
   outLang:'Test tili', same:'Dars tilida',
   generate:'Testni tuzish', again:'Yangi test tuzish', making:'Test tuzilmoqda…',
   loading:['Material oʻqilmoqda…','Savol uchun qismlar tanlanmoqda…','A, B, C, D variantlar yozilmoqda…','Javoblar tekshirilmoqda…'],
@@ -449,6 +459,7 @@ ru:{
   questions:'Количество вопросов', dec:'Меньше вопросов', inc:'Больше вопросов',
   focus:'О чём спрашивать', focusKey:'Главные идеи', focusRandom:'Случайные фрагменты',
   level:'Сложность', easy:'Лёгкий', mixed:'Смешанный', hard:'Сложный',
+  qtype:'Тип вопросов', qMcq:'A / B / C / D', qTf:'Верно / Неверно', qMixed:'Смешанные',
   outLang:'Язык теста', same:'Как в материале',
   generate:'Составить тест', again:'Составить новый тест', making:'Составляю тест…',
   loading:['Читаю материал…','Выбираю, о чём спросить…','Пишу варианты A, B, C, D…','Проверяю ответы…'],
@@ -499,7 +510,7 @@ var els={
   photoStop:$('#photoStop'), photoBadge:$('#photoBadge')
 };
 
-var state={count:10,focus:'key',level:'mixed',outLang:'same',questions:[],showKey:false,view:'empty',busy:false,isExample:true,fewer:0,fromPhoto:false,photoBusy:false};
+var state={count:10,focus:'key',level:'mixed',qtype:'mcq',outLang:'same',questions:[],showKey:false,view:'empty',busy:false,isExample:true,fewer:0,fromPhoto:false,photoBusy:false};
 var ctl=null, ticker=null, photoCtl=null;
 
 /* One call to our own serverless function. The Gemini key lives only on the server. */
@@ -627,6 +638,13 @@ function cleanItems(arr){
   arr.forEach(function(it){
     if(!it||typeof it!=='object') return;
     var q=cleanOption(it.q!=null?it.q:it.question);
+    if(it.type==='tf'&&typeof it.truth==='boolean'){
+      var tl=cleanOption(it.trueLabel)||'True',fl=cleanOption(it.falseLabel)||'False';
+      if(!q||tl.toLowerCase()===fl.toLowerCase()) return;
+      var tk=q.toLowerCase();if(seen[tk]) return;seen[tk]=1;
+      out.push({tf:true,q:q,opts:[tl,fl],ans:it.truth?0:1,note:typeof it.note==='string'?it.note.trim():''});
+      return;
+    }
     var correct=cleanOption(it.correct);
     var wrongRaw=Array.isArray(it.wrong)?it.wrong:[];
     if(!q||!correct) return;
@@ -645,10 +663,13 @@ function cleanItems(arr){
 }
 /* spread the correct answers evenly over A, B, C, D */
 function place(items){
-  var slots=[];for(var i=0;i<items.length;i++)slots.push(i%4);
+  var nm=items.filter(function(it){return !it.tf}).length,slots=[];
+  for(var i=0;i<nm;i++)slots.push(i%4);
   slots=shuffle(slots);
-  return items.map(function(it,i){
-    var opts=shuffle(it.wrong),pos=slots[i];
+  var si=0;
+  return items.map(function(it){
+    if(it.tf) return {q:it.q,opts:it.opts.slice(),ans:it.ans,note:it.note,tf:true};
+    var opts=shuffle(it.wrong),pos=slots[si++];
     opts.splice(pos,0,it.correct);
     return {q:it.q,opts:opts,ans:pos,note:it.note};
   });
@@ -666,7 +687,7 @@ async function generate(){
   updateGenLabel();renderOut();startTicker();
   ctl=new AbortController();
   try{
-    var data=await callApi({action:'test',text:text,count:state.count,focus:state.focus,level:state.level,outLang:state.outLang},ctl.signal);
+    var data=await callApi({action:'test',text:text,count:state.count,focus:state.focus,level:state.level,qtype:state.qtype,outLang:state.outLang},ctl.signal);
     var raw=data.questions;
     var items=cleanItems(raw);
     if(!items.length){state.view=prevView;showNotice(L.failed);return}
@@ -744,6 +765,7 @@ function setCount(n){state.count=Math.max(5,Math.min(30,n));els.countOut.textCon
 els.dec.addEventListener('click',function(){setCount(state.count-1)});
 els.inc.addEventListener('click',function(){setCount(state.count+1)});
 $$('input[name="focus"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)state.focus=r.value})});
+$$('input[name="qtype"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)state.qtype=r.value})});
 $$('input[name="level"]').forEach(function(r){r.addEventListener('change',function(){if(r.checked)state.level=r.value})});
 els.outLang.addEventListener('change',function(){state.outLang=els.outLang.value});
 
@@ -836,6 +858,7 @@ els.pdf.addEventListener('click',function(){
 });
 els.shuffle.addEventListener('click',function(){
   var base=state.questions.map(function(q){
+    if(q.tf) return {tf:true,q:q.q,opts:q.opts,ans:q.ans,note:q.note};
     return {q:q.q,correct:q.opts[q.ans],wrong:q.opts.filter(function(_,j){return j!==q.ans}),note:q.note};
   });
   state.questions=place(shuffle(base));renderOut();
