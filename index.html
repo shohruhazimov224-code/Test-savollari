@@ -246,6 +246,11 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             <span data-i18n="pdfIn"></span>
           </label>
           <input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden>
+          <label class="btn small" for="wordFile" id="wordInBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M8.5 12.5l1.3 5 1.7-4.5 1.7 4.5 1.3-5"/></svg>
+            <span data-i18n="wordIn"></span>
+          </label>
+          <input id="wordFile" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
           <button type="button" class="btn small quiet" id="clear" data-i18n="clear"></button>
           <button type="button" class="btn small quiet" id="example" data-i18n="loadExample"></button>
         </div>
@@ -329,6 +334,10 @@ select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);bo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
             <span data-i18n="pdf"></span>
           </button>
+          <button type="button" class="btn small" id="word">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M8.5 12.5l1.3 5 1.7-4.5 1.7 4.5 1.3-5"/></svg>
+            <span data-i18n="word"></span>
+          </button>
           <button type="button" class="btn small" id="shuffle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
             <span data-i18n="shuffle"></span>
@@ -368,6 +377,7 @@ en:{
   photo:'Add photos of pages',
   readingPhotos:function(a,b){return 'Reading photos… '+a+'/'+b},
   photoBadge:'Text read by AI from photos or a PDF. Check it before making the test.',
+  wordIn:'Upload Word', word:'Save Word', wordBig:'This file is too big. Use a Word file under 15 MB.', wordOld:'Old .doc files are not supported. In Word choose Save As .docx, then upload it.', wordOld2:'This browser cannot open Word files. Try Chrome or Safari, or paste the text instead.', wordBad:'Could not read this Word file. Save it as .docx and try again.', wordNone:'No text found in this Word file.',
   pdfIn:'Upload PDF', readingPdf:'Reading the PDF…', pdfBig:'This PDF is too big. Use a PDF under about 2.5 MB, or split it into parts.', pdfBad:'Could not read this PDF. Try another file.',
   photoNone:'No readable text found in the photos.',
   photoType:'Use JPEG, PNG, WebP or GIF photos.',
@@ -411,6 +421,7 @@ uz:{
   photo:'Sahifa rasmlarini qoʻshish',
   readingPhotos:function(a,b){return 'Rasmlar oʻqilmoqda… '+a+'/'+b},
   photoBadge:'Matn sunʼiy intellekt tomonidan rasm yoki PDFdan oʻqildi. Test tuzishdan oldin tekshiring.',
+  wordIn:'Word yuklash', word:'Word saqlash', wordBig:'Fayl juda katta. 15 MB dan kichik Word fayl tanlang.', wordOld:'Eski .doc fayllar qoʻllab-quvvatlanmaydi. Wordda “Save As .docx” ni tanlang va qayta yuklang.', wordOld2:'Bu brauzer Word faylni ocha olmaydi. Chrome yoki Safari ni sinab koʻring yoki matnni qoʻyib yuboring.', wordBad:'Bu Word faylni oʻqib boʻlmadi. Uni .docx qilib saqlab, qayta urinib koʻring.', wordNone:'Bu Word faylda matn topilmadi.',
   pdfIn:'PDF yuklash', readingPdf:'PDF oʻqilmoqda…', pdfBig:'Bu PDF juda katta. Taxminan 2,5 MB dan kichik PDF tanlang yoki uni qismlarga boʻling.', pdfBad:'Bu PDFni oʻqib boʻlmadi. Boshqa fayl tanlang.',
   photoNone:'Rasmlarda oʻqiladigan matn topilmadi.',
   photoType:'JPEG, PNG, WebP yoki GIF rasmlardan foydalaning.',
@@ -454,6 +465,7 @@ ru:{
   photo:'Добавить фото страниц',
   readingPhotos:function(a,b){return 'Читаю фото… '+a+'/'+b},
   photoBadge:'Текст прочитан ИИ с фото или PDF. Проверьте его перед составлением теста.',
+  wordIn:'Загрузить Word', word:'Сохранить Word', wordBig:'Файл слишком большой. Возьмите файл Word меньше 15 МБ.', wordOld:'Старые файлы .doc не поддерживаются. В Word выберите «Сохранить как .docx» и загрузите снова.', wordOld2:'Этот браузер не может открыть файл Word. Попробуйте Chrome или Safari либо вставьте текст.', wordBad:'Не удалось прочитать этот файл Word. Сохраните его как .docx и повторите.', wordNone:'В этом файле Word не найден текст.',
   pdfIn:'Загрузить PDF', readingPdf:'Читаю PDF…', pdfBig:'Этот PDF слишком большой. Возьмите PDF меньше примерно 2,5 МБ или разделите его на части.', pdfBad:'Не удалось прочитать этот PDF. Попробуйте другой файл.',
   photoNone:'На фото не найден читаемый текст.',
   photoType:'Используйте фото JPEG, PNG, WebP или GIF.',
@@ -991,6 +1003,150 @@ $('#pdfFile').addEventListener('change',async function(){
     state.photoBusy=false;input.disabled=false;els.photo.disabled=false;photoCtl=null;
     els.photoStatus.hidden=true;
   }
+});
+
+/* ---------- Word (.docx): read a lesson and save the test ---------- */
+var WORD_MIME='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+var WORD_T={
+  en:{fileTg:'Telegramʼs built-in browser cannot save files. Open this site in Safari or Chrome first.',
+      manual:'Could not save the Word file. Use the Copy button instead.'},
+  uz:{fileTg:'Telegramning ichki brauzeri fayl saqlay olmaydi. Avval saytni Safari yoki Chrome da oching.',
+      manual:'Word faylni saqlab boʻlmadi. Oʻrniga “Nusxalash” tugmasidan foydalaning.'},
+  ru:{fileTg:'Встроенный браузер Telegram не умеет сохранять файлы. Сначала откройте сайт в Safari или Chrome.',
+      manual:'Не удалось сохранить файл Word. Используйте кнопку «Копировать».'}
+};
+function u16(v,o){return v.getUint16(o,true)}
+function u32(v,o){return v.getUint32(o,true)}
+/* Read a .docx (a zip file) with the browser's own tools and return its text. */
+async function docxToText(file){
+  var buf=await file.arrayBuffer(),v=new DataView(buf),bytes=new Uint8Array(buf);
+  var eocd=-1;
+  for(var i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65600);i--){if(u32(v,i)===0x06054b50){eocd=i;break}}
+  if(eocd<0) throw {code:'bad'};
+  var n=u16(v,eocd+10),p=u32(v,eocd+16),found=null;
+  for(var k=0;k<n;k++){
+    if(u32(v,p)!==0x02014b50) throw {code:'bad'};
+    var method=u16(v,p+10),csize=u32(v,p+20),nl=u16(v,p+28),el=u16(v,p+30),cl=u16(v,p+32),off=u32(v,p+42);
+    var name=new TextDecoder().decode(bytes.subarray(p+46,p+46+nl));
+    if(name==='word/document.xml'){found={method:method,csize:csize,off:off};break}
+    p+=46+nl+el+cl;
+  }
+  if(!found) throw {code:'bad'};
+  var ln=u16(v,found.off+26),le=u16(v,found.off+28),start=found.off+30+ln+le;
+  var data=bytes.subarray(start,start+found.csize),xmlBytes;
+  if(found.method===0){xmlBytes=data}
+  else if(found.method===8){
+    if(typeof DecompressionStream==='undefined') throw {code:'unsupported'};
+    var ds=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    xmlBytes=new Uint8Array(await new Response(ds).arrayBuffer());
+  }else throw {code:'bad'};
+  var doc=new DOMParser().parseFromString(new TextDecoder('utf-8').decode(xmlBytes),'application/xml');
+  if(doc.getElementsByTagName('parsererror').length) throw {code:'bad'};
+  var out=[];
+  Array.prototype.forEach.call(doc.getElementsByTagName('w:p'),function(para){
+    var line='';
+    (function walk(node){
+      for(var c=node.firstChild;c;c=c.nextSibling){
+        if(c.nodeType!==1) continue;
+        var t=c.nodeName;
+        if(t==='w:t') line+=c.textContent;
+        else if(t==='w:tab') line+='\t';
+        else if(t==='w:br'||t==='w:cr') line+='\n';
+        else walk(c);
+      }
+    })(para);
+    out.push(line);
+  });
+  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+$('#wordFile').addEventListener('change',async function(){
+  var input=$('#wordFile'),f=input.files&&input.files[0];
+  input.value='';
+  if(!f) return;
+  var L=T[lang];
+  hideNotice();
+  if(f.size>15000000){showNotice(L.wordBig);return}
+  if(/\.doc$/i.test(f.name)){showNotice(L.wordOld);return}
+  try{
+    var text=await docxToText(f);
+    if(!text){showNotice(L.wordNone);return}
+    var cur=els.material.value.trim();
+    els.material.value=(state.isExample||!cur)?text:cur+'\n\n'+text;
+    els.material.scrollTop=0;
+    state.isExample=false;state.fromPhoto=false;
+    store('imtihon-material',els.material.value);updateMeta();
+  }catch(e){
+    showNotice(e&&e.code==='unsupported'?L.wordOld2:L.wordBad);
+  }
+});
+
+/* Build a .docx (a plain zip with three small XML files) without any library. */
+var CRC_TABLE=(function(){var t=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){var c=0xFFFFFFFF;for(var i=0;i<b.length;i++)c=CRC_TABLE[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function zipStore(files){
+  var enc=new TextEncoder(),parts=[],central=[],offset=0;
+  files.forEach(function(f){
+    var name=enc.encode(f.name),data=enc.encode(f.data),crc=crc32(data);
+    var h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);
+    h.setUint16(10,0,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);
+    h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),name,data);
+    var c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);
+    c.setUint16(10,0,true);c.setUint16(12,0,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);
+    c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);
+    c.setUint32(42,offset,true);
+    central.push(new Uint8Array(c.buffer),name);
+    offset+=30+name.length+data.length;
+  });
+  var csize=0;central.forEach(function(x){csize+=x.length});
+  var e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);
+  e.setUint32(12,csize,true);e.setUint32(16,offset,true);
+  return new Blob(parts.concat(central,[new Uint8Array(e.buffer)]),{type:WORD_MIME});
+}
+function xmlEsc(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]}).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'')}
+function wPara(text,o){
+  o=o||{};
+  var ppr=(o.keep?'<w:keepNext/>':'')+(o.pageBreak?'<w:pageBreakBefore/>':'')+
+    '<w:spacing w:after="'+(o.after==null?120:o.after)+'" w:line="276" w:lineRule="auto"/>'+(o.indent?'<w:ind w:left="'+o.indent+'"/>':'');
+  var rpr='<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/>'+(o.bold?'<w:b/>':'')+'<w:sz w:val="'+(o.size||24)+'"/><w:szCs w:val="'+(o.size||24)+'"/>';
+  return '<w:p><w:pPr>'+ppr+'</w:pPr><w:r><w:rPr>'+rpr+'</w:rPr><w:t xml:space="preserve">'+xmlEsc(text)+'</w:t></w:r></w:p>';
+}
+function buildDocx(){
+  var L=T[lang],body=wPara(L.header,{bold:true,size:32,after:240});
+  state.questions.forEach(function(q,i){
+    body+=wPara((i+1)+'. '+q.q,{bold:true,keep:true,after:80});
+    q.opts.forEach(function(o,j){body+=wPara(LETTERS[j]+') '+o,{indent:567,keep:j<q.opts.length-1,after:j<q.opts.length-1?40:200})});
+  });
+  body+=wPara(L.answerKey,{bold:true,size:32,pageBreak:true,after:240});
+  body+=wPara(state.questions.map(function(q,i){return (i+1)+'-'+LETTERS[q.ans]}).join(', '));
+  var NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  var head='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  return zipStore([
+    {name:'[Content_Types].xml',data:head+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'},
+    {name:'_rels/.rels',data:head+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'},
+    {name:'word/document.xml',data:head+'<w:document '+NS+'><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>'}
+  ]);
+}
+els.word=$('#word');
+els.word.addEventListener('click',async function(){
+  if(!state.questions.length) return;
+  var L=T[lang],W=WORD_T[lang]||WORD_T.en;
+  if(inTelegramBrowser()){toast(W.fileTg,6000);return}
+  try{
+    var blob=buildDocx(),file=null;
+    try{file=new File([blob],'test.docx',{type:WORD_MIME})}catch(e){}
+    if(file&&navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file]});return}
+      catch(e){if(e&&e.name==='AbortError')return}
+    }
+    var url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='test.docx';document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url)},10000);
+    toast(L.saved);
+  }catch(e){toast(W.manual,4000)}
 });
 
 /* ---------- start ---------- */
